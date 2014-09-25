@@ -85,38 +85,87 @@ def depthFirstSearch(problem):
     """
     "*** YOUR CODE HERE ***"
     from game import Directions
-    from util import PriorityQueue, Queue, Counter
+    from util import PriorityQueue, Queue, Counter, Stack
     s = Directions.SOUTH
     w = Directions.WEST
-    fringe = PriorityQueue()
+    n = Directions.NORTH
+    e = Directions.EAST
+    fringe = Stack()
     solution = Queue()
+    visited = Queue()
     print "Start:", problem.getStartState()
     print "Is the start a goal?", problem.isGoalState(problem.getStartState())
     print "Start's successors:", problem.getSuccessors(problem.getStartState())
-    state = problem.getStartState()
-    node = [state,'',1]
+    parentstate = problem.getStartState()
+    node = [parentstate,'',1,solution]
+    fringe.push(node)
+    i = 0
+    while not fringe.isEmpty():
+      node = fringe.pop() #[(x,y)state,'Direction',cost,Queue(path)]
+      print "Popping ", node
+      if node[0] not in visited.list:
+        path = node[3]
+        print " Path ", path.list
+        visited.push(node[0])
+        for childnode in problem.getSuccessors(node[0]):
+          if childnode[0] not in visited.list:
+            childnodepath = Queue()
+            while not path.isEmpty():
+              p = path.pop()
+              childnodepath.push(p)
+            childnodepath.push(childnode[1][:1])
+            print "  Childnode ", childnode[0], childnode[1], childnode[2], childnodepath.list
+            if problem.isGoalState(childnode[0]):
+              print "Solution!"
+              solution = Queue()
+              for step in childnodepath.list:
+                if step == 'W':
+                  solution.push(w)
+                elif step == 'N':
+                  solution.push(n)
+                elif step == 'E':
+                  solution.push(e)
+                elif step == 'S':
+                  solution.push(s)
+              print childnodepath.list
+              return solution.list
+            else:
+              fringe.push([childnode[0], childnode[1], childnode[2], childnodepath])
+    for solutionstep in solution.list:
+      print solutionstep
+    return solution
+    """
+    First attempt...
+    parentstate = problem.getStartState()
+    node = [parentstate,'',1]
     fringe.push(node, 0)
     depth = 1
-    c = Counter()
-    c[node] = depth
+    hash = {}
+    hash[parentstate] = depth
+    print parentstate
     while not fringe.isEmpty():
       node = fringe.pop()
-      state = node[0]
-      c[node] = depth
       print "Popping ", node
-      if problem.isGoalState(state):
-        solution.push(state)
+      parentstate = node[0]
+      if problem.isGoalState(parentstate):
+        solution.push(node)
         print "Solution!"
+        for solutionstep in solution.list:
+          print solutionstep
         return solution
       else:
-        print "Get Successors ", problem.getSuccessors(state)
-        for suc in problem.getSuccessors(state):
-          print "Pushing ", suc, " Depth ", c[node]
-          fringe.push(suc,(c[node] + 1) * -1)
-      print fringe.heap
-      if depth > 3:
+        solution.push(node)
+        for childnode in problem.getSuccessors(parentstate):
+          
+          childstate = childnode[0]
+          if hash.get(childstate) == None:
+            hash[childstate] = hash.get(parentstate) + 1
+            fringe.push(childnode,(hash.get(childstate) * -1))
+            print "Fringe push ", childnode
+      if depth > 5:
         return [s,s,s]
     return [w,w,w,w,w]
+    """
 
 def breadthFirstSearch(problem):
     """
